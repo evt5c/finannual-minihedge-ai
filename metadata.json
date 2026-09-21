@@ -1,0 +1,7 @@
+{
+  "name": "FinAnnual",
+  "description": "Mini Hedge AI terminal featuring FinBERT news sentiment analysis, visual chart technical analysis, and quantitative risk management agent.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
