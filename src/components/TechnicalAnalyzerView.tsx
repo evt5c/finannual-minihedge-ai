@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ChartAnalysisResult, Language } from "../types";
 import { translations } from "../translations";
+import { useAnalysisData } from "../context/AnalysisDataContext";
 import {
   ImageIcon,
   Upload,
@@ -18,7 +19,10 @@ import {
   BarChart3,
   Layers,
   LineChart,
-  Maximize2
+  Maximize2,
+  FileDown,
+  FileText,
+  FileJson,
 } from "lucide-react";
 import { TradingViewChart } from "./TradingViewChart";
 
@@ -40,6 +44,16 @@ export const TechnicalAnalyzerView: React.FC<TechnicalAnalyzerProps> = ({ langua
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { openExportModal, triggerExport, updateChartState } = useAnalysisData();
+
+  useEffect(() => {
+    updateChartState({
+      activeMode,
+      activeAssetLabel,
+      visionResult: analysisResult,
+    });
+  }, [activeMode, activeAssetLabel, analysisResult, updateChartState]);
 
   // Preset sample charts generation helper
   const createPresetChartDataUrl = (type: "btc" | "nvda" | "spy" | "idr"): string => {
@@ -300,17 +314,54 @@ export const TechnicalAnalyzerView: React.FC<TechnicalAnalyzerProps> = ({ langua
           </button>
         </div>
 
-        {activeMode === "tradingview" ? (
-          <div className="flex items-center gap-2 text-xs font-mono text-purple-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Real-time candlestick ticks & indicators active</span>
+        <div className="flex items-center gap-2">
+          {activeMode === "tradingview" ? (
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-purple-300 mr-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Real-time candlestick ticks & indicators active</span>
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-purple-300 mr-2">
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>Multimodal Vision AI pattern recognizer</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-1.5 bg-[#110d24] p-1.5 rounded-xl border border-purple-500/30">
+            <button
+              type="button"
+              id="chart-export-modal-btn"
+              onClick={() => openExportModal("chart")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+              title={t.exportModal.btnTooltip}
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              <span>{t.exportModal.btnLabel}</span>
+            </button>
+
+            <button
+              type="button"
+              id="chart-quick-pdf-btn"
+              onClick={() => triggerExport("pdf", "chart", language)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-300 hover:text-white hover:bg-rose-950/60 border border-rose-500/30 transition-all cursor-pointer"
+              title="Download PDF (.pdf)"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-mono">PDF</span>
+            </button>
+
+            <button
+              type="button"
+              id="chart-quick-json-btn"
+              onClick={() => triggerExport("json", "chart", language)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-300 hover:text-white hover:bg-emerald-950/60 border border-emerald-500/30 transition-all cursor-pointer"
+              title="Download JSON (.json)"
+            >
+              <FileJson className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-mono">JSON</span>
+            </button>
           </div>
-        ) : (
-          <div className="flex items-center gap-2 text-xs font-mono text-purple-300">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>Multimodal Vision AI pattern recognizer</span>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Mode 1: Interactive Real-Time TradingView Terminal with 1D/1W Macro AI */}

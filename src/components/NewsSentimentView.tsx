@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NewsItem, Language } from "../types";
 import { translations } from "../translations";
+import { useAnalysisData } from "../context/AnalysisDataContext";
 import {
   TrendingUp,
   TrendingDown,
@@ -16,7 +17,10 @@ import {
   RefreshCw,
   Radio,
   Globe,
-  Rss
+  Rss,
+  FileDown,
+  FileText,
+  FileJson,
 } from "lucide-react";
 
 interface NewsSentimentViewProps {
@@ -71,9 +75,15 @@ export const NewsSentimentView: React.FC<NewsSentimentViewProps> = ({ language }
     }
   };
 
+  const { openExportModal, triggerExport, setNewsList: setContextNewsList } = useAnalysisData();
+
   useEffect(() => {
     fetchNews();
   }, []);
+
+  useEffect(() => {
+    setContextNewsList(newsList);
+  }, [newsList, setContextNewsList]);
 
   // Filter items by category
   const filteredNews = newsList.filter((item) => {
@@ -305,14 +315,49 @@ export const NewsSentimentView: React.FC<NewsSentimentViewProps> = ({ language }
             </div>
           </div>
 
-          <button
-            onClick={() => fetchNews(true)}
-            disabled={isRefreshing || loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-purple-900/60 hover:bg-purple-800 text-purple-200 hover:text-white border border-purple-500/40 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? "animate-spin" : ""}`} />
-            <span>{isRefreshing ? t.news.refreshing : t.news.refreshBtn}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="news-export-modal-btn"
+              onClick={() => openExportModal("news")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-purple-950/80 hover:bg-purple-900 text-purple-200 hover:text-white border border-purple-500/40 transition-colors cursor-pointer"
+              title={t.exportModal.btnTooltip}
+            >
+              <FileDown className="w-3.5 h-3.5 text-purple-400" />
+              <span>{t.exportModal.btnLabel}</span>
+            </button>
+
+            <button
+              type="button"
+              id="news-quick-pdf-btn"
+              onClick={() => triggerExport("pdf", "news", language)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
+              title="Download PDF (.pdf)"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>PDF</span>
+            </button>
+
+            <button
+              type="button"
+              id="news-quick-json-btn"
+              onClick={() => triggerExport("json", "news", language)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer"
+              title="Download JSON (.json)"
+            >
+              <FileJson className="w-3.5 h-3.5" />
+              <span>JSON</span>
+            </button>
+
+            <button
+              onClick={() => fetchNews(true)}
+              disabled={isRefreshing || loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-purple-900/60 hover:bg-purple-800 text-purple-200 hover:text-white border border-purple-500/40 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || loading ? "animate-spin" : ""}`} />
+              <span>{isRefreshing ? t.news.refreshing : t.news.refreshBtn}</span>
+            </button>
+          </div>
         </div>
 
         {/* Category Filter Pills & Items Count */}

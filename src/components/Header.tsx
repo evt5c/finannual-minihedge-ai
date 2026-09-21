@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Language, SystemLiveTicker } from "../types";
 import { translations } from "../translations";
-import { ShieldCheck, Activity, Globe, Sparkles, TrendingUp, Cpu, RefreshCw } from "lucide-react";
+import { ShieldCheck, Activity, Globe, Sparkles, TrendingUp, Cpu, RefreshCw, FileDown } from "lucide-react";
+import { useAnalysisData } from "../context/AnalysisDataContext";
 
 interface HeaderProps {
   language: Language;
@@ -110,6 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
   onTabChange,
 }) => {
   const t = translations[language];
+  const { openExportModal } = useAnalysisData();
   const [tickers, setTickers] = useState<SystemLiveTicker[]>(DEFAULT_TICKERS);
   const [latency, setLatency] = useState<number>(18);
   const [isWeekend, setIsWeekend] = useState<boolean>(true);
@@ -247,8 +249,18 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Language selector on mobile */}
-          <div className="md:hidden flex items-center">
+          {/* Language selector & Export on mobile */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              type="button"
+              id="mobile-header-export-btn"
+              onClick={() => openExportModal(activeTab)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 border border-purple-500/40 transition-colors"
+              title={t.exportModal.btnTooltip}
+            >
+              <FileDown className="w-3.5 h-3.5 text-purple-300" />
+              <span>Export</span>
+            </button>
             <button
               onClick={() => onLanguageChange(language === "en" ? "id" : "en")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-950/50 hover:bg-purple-900/50 text-purple-200 border border-purple-500/30 transition-colors"
@@ -298,8 +310,19 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Desktop Language Switcher */}
+        {/* Desktop Export Button & Language Switcher */}
         <div className="hidden md:flex items-center gap-3">
+          <button
+            type="button"
+            id="desktop-header-export-btn"
+            onClick={() => openExportModal(activeTab)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 hover:text-white border border-purple-500/40 hover:border-purple-400 shadow-sm transition-all cursor-pointer"
+            title={t.exportModal.btnTooltip}
+          >
+            <FileDown className="w-3.5 h-3.5 text-purple-400" />
+            <span>{t.exportModal.btnLabel}</span>
+          </button>
+
           <div className="flex items-center bg-[#130f26] rounded-lg p-1 border border-purple-500/20">
             <button
               onClick={() => onLanguageChange("en")}

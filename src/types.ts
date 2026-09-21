@@ -159,3 +159,41 @@ export interface MarketStatusInfo {
   descriptionEn: string;
   descriptionId: string;
 }
+
+export type ExportScope = "news" | "chart" | "quant" | "all";
+export type ExportFormat = "json" | "pdf";
+
+export interface ExportSummaryCard {
+  label: string;
+  value: string;
+  sub?: string;
+  highlight?: "positive" | "negative" | "neutral" | "warning" | "info";
+}
+
+export interface ExportSection {
+  title: string;
+  description?: string;
+  items?: { key: string; value: string; note?: string }[];
+  table?: {
+    headers: string[];
+    rows: string[][];
+  };
+  textBlock?: string;
+}
+
+export interface ExportReportData {
+  reportId: string;
+  terminalName: string;
+  title: string;
+  subtitle: string;
+  scope: ExportScope;
+  scopeLabel: string;
+  generatedAt: string;
+  isoTimestamp: string;
+  language: Language;
+  summaryCards: ExportSummaryCard[];
+  sections: ExportSection[];
+  hedgeDirectives?: string[];
+  auditHash: string;
+  rawPayload: Record<string, any>;
+}

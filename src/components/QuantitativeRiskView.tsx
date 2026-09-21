@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Language, QuantAgentAdvice } from "../types";
 import { translations } from "../translations";
+import { useAnalysisData } from "../context/AnalysisDataContext";
 import {
   ShieldAlert,
   Percent,
@@ -20,7 +21,10 @@ import {
   ChevronUp,
   AlertTriangle,
   Flame,
-  Scale
+  Scale,
+  FileDown,
+  FileText,
+  FileJson,
 } from "lucide-react";
 
 interface QuantitativeRiskProps {
@@ -119,6 +123,44 @@ export const QuantitativeRiskView: React.FC<QuantitativeRiskProps> = ({ language
       ? { label: language === "id" ? "Moderat (Seimbang)" : "Moderate (Balanced)", color: "text-purple-300", bg: "bg-purple-950/60", border: "border-purple-500/40" }
       : { label: language === "id" ? "Tinggi (Agresif / Kripto)" : "High Exposure (Crypto / Growth)", color: "text-rose-400", bg: "bg-rose-950/60", border: "border-rose-500/40" };
 
+  const { openExportModal, triggerExport, updateQuantState } = useAnalysisData();
+
+  useEffect(() => {
+    updateQuantState({
+      capital,
+      dailyVol,
+      confidence,
+      horizonDays,
+      varDollar,
+      varFraction,
+      cvarDollar,
+      cvarFraction,
+      halfKelly,
+      fullKelly,
+      quarterKelly,
+      sharpeRatio,
+      sortinoRatio,
+      riskCategory: { label: riskCategory.label },
+      agentAdvice,
+    });
+  }, [
+    capital,
+    dailyVol,
+    confidence,
+    horizonDays,
+    varDollar,
+    varFraction,
+    cvarDollar,
+    cvarFraction,
+    halfKelly,
+    fullKelly,
+    quarterKelly,
+    sharpeRatio,
+    sortinoRatio,
+    riskCategory.label,
+    agentAdvice,
+  ]);
+
   // Stress scenarios definitions
   const scenarios = [
     {
@@ -207,11 +249,13 @@ export const QuantitativeRiskView: React.FC<QuantitativeRiskProps> = ({ language
             </p>
           </div>
 
-          {/* Mode Switcher Pill */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0 bg-[#0c0919] p-2 rounded-2xl border border-purple-500/30">
-            <span className="text-[11px] font-mono text-slate-400 px-2 uppercase">{t.quant.modeToggleLabel}:</span>
-            <div className="flex items-center gap-1">
+          {/* Actions: Mode Switcher & Export Suite */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {/* Mode Switcher Pill */}
+            <div className="flex items-center gap-1 shrink-0 bg-[#0c0919] p-1.5 rounded-2xl border border-purple-500/30">
+              <span className="text-[10px] font-mono text-slate-400 px-2 uppercase">{t.quant.modeToggleLabel}:</span>
               <button
+                type="button"
                 onClick={() => setRiskMode("intermediate")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   riskMode === "intermediate"
@@ -222,6 +266,7 @@ export const QuantitativeRiskView: React.FC<QuantitativeRiskProps> = ({ language
                 {t.quant.modeIntermediate}
               </button>
               <button
+                type="button"
                 onClick={() => setRiskMode("advanced")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   riskMode === "advanced"
@@ -230,6 +275,42 @@ export const QuantitativeRiskView: React.FC<QuantitativeRiskProps> = ({ language
                 }`}
               >
                 {t.quant.modeAdvanced}
+              </button>
+            </div>
+
+            {/* Export Buttons Group */}
+            <div className="flex items-center gap-1.5 bg-[#0c0919] p-1.5 rounded-2xl border border-purple-500/30">
+              <button
+                type="button"
+                id="quant-header-export-btn"
+                onClick={() => openExportModal("quant")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                title={t.exportModal.btnTooltip}
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                <span>{t.exportModal.btnLabel}</span>
+              </button>
+
+              <button
+                type="button"
+                id="quant-quick-pdf-btn"
+                onClick={() => triggerExport("pdf", "quant", language)}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-300 hover:text-white hover:bg-rose-950/60 border border-rose-500/30 transition-all cursor-pointer"
+                title="Download PDF (.pdf)"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-mono">PDF</span>
+              </button>
+
+              <button
+                type="button"
+                id="quant-quick-json-btn"
+                onClick={() => triggerExport("json", "quant", language)}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-emerald-300 hover:text-white hover:bg-emerald-950/60 border border-emerald-500/30 transition-all cursor-pointer"
+                title="Download JSON (.json)"
+              >
+                <FileJson className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-mono">JSON</span>
               </button>
             </div>
           </div>
@@ -908,6 +989,33 @@ export const QuantitativeRiskView: React.FC<QuantitativeRiskProps> = ({ language
                 Methodology: {agentAdvice.formulaUsed}
               </div>
             )}
+
+            {/* Offline Export Action for Agent Advice */}
+            <div className="mt-4 pt-3 border-t border-purple-900/40 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs text-slate-400 font-sans">
+                {language === "id"
+                  ? "Arsipkan kalkulasi risiko dan nasehat AI ini:"
+                  : "Archive this risk model & AI advice for offline record:"}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => triggerExport("pdf", "quant", language)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-400" />
+                  <span>{language === "id" ? "Unduh PDF" : "Download PDF"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => triggerExport("json", "quant", language)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
+                >
+                  <FileJson className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{language === "id" ? "Unduh JSON" : "Download JSON"}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
